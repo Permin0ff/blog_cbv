@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django.contrib.auth.models import User
-
+from mptt.models import MPTTModel, TreeForeignKey
 
 class Post(models.Model):
     """
@@ -17,10 +17,11 @@ class Post(models.Model):
     slug = models.SlugField(verbose_name='URL', max_length=255, blank=True, unique=True)
     description = models.TextField(verbose_name='Краткое описание', max_length=500)
     text = models.TextField(verbose_name='Полный текст записи')
+    category = TreeForeignKey('Category', on_delete=models.PROTECT, related_name='articles', verbose_name='Категория')
     thumbnail = models.ImageField(
         verbose_name='Изображение записи',
         blank=True,
-        upload_to='images/thumbnails/',
+        upload_to='images/thumbnails/%Y/%m/%d/',
         validators=[FileExtensionValidator(allowed_extensions=('png', 'jpg', 'webp', 'jpeg', 'gif'))]
     )
     status = models.CharField(choices=STATUS_OPTIONS, default='published', verbose_name='Статус записи', max_length=10)
@@ -40,4 +41,44 @@ class Post(models.Model):
         verbose_name_plural = 'Статьи'
 
     def __str__(self):
+        return self.title
+
+
+
+
+class Category(MPTTModel):
+    """
+    Модель категорий с вложенностью
+    """
+    title = models.CharField(max_length=255, verbose_name='Название категории')
+    slug = models.SlugField(max_length=255, verbose_name='URL категории', blank=True)
+    description = models.TextField(verbose_name='Описание категории', max_length=300)
+    parent = TreeForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        db_index=True,
+        related_name='children',
+        verbose_name='Родительская категория'
+    )
+
+    class MPTTMeta:
+        """
+        Сортировка по вложенности
+        """
+        order_insertion_by = ('title',)
+
+    class Meta:
+        """
+        Сортировка, название модели в админ панели, таблица в данными
+        """
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+        db_table = 'app_categories'
+
+    def __str__(self):
+        """
+        Возвращение заголовка статьи
+        """
         return self.title
