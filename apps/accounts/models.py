@@ -11,7 +11,7 @@ class Profile(models.Model):
     avatar = models.ImageField(
         verbose_name='Аватар',
         upload_to='images/avatars/%Y/%m/%d/',
-        default='images/avatars/default.jpg',
+        default='images/avatars/default.png',
         blank=True,
         validators=[FileExtensionValidator(allowed_extensions=('png', 'jpg', 'jpeg'))])
     bio = models.TextField(max_length=500, blank=True, verbose_name='Информация о себе')
@@ -21,7 +21,6 @@ class Profile(models.Model):
         """
         Сортировка, название таблицы в базе данных
         """
-        db_table = 'app_profiles'
         ordering = ('user',)
         verbose_name = 'Профиль'
         verbose_name_plural = 'Профили'
