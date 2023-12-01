@@ -4,7 +4,12 @@ from django.urls import reverse_lazy
 
 from .models import Profile
 from .forms import UserUpdateForm, ProfileUpdateForm
-
+from django.views.generic import CreateView
+from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LogoutView
+from .forms import UserLoginForm
+from .forms import UserRegisterForm
 
 class ProfileDetailView(DetailView):
     """
@@ -55,3 +60,49 @@ class ProfileUpdateView(UpdateView):
 
     def get_success_url(self):
         return reverse_lazy('profile_detail', kwargs={'slug': self.object.slug})
+
+
+
+
+
+class UserRegisterView(SuccessMessageMixin, CreateView):
+    """
+    Представление регистрации на сайте с формой регистрации
+    """
+    form_class = UserRegisterForm
+    success_url = reverse_lazy('home')
+    template_name = 'accounts/user_register.html'
+    success_message = 'Вы успешно зарегистрировались. Можете войти на сайт!'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Регистрация на сайте'
+        return context
+
+
+
+
+
+class UserLoginView(SuccessMessageMixin, LoginView):
+    """
+    Авторизация на сайте
+    """
+    form_class = UserLoginForm
+    template_name = 'accounts/user_login.html'
+    next_page = 'home'
+    success_message = 'Добро пожаловать на сайт!'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Авторизация на сайте'
+        return context
+
+
+
+
+
+class UserLogoutView(LogoutView):
+    """
+    Выход с сайта
+    """
+    next_page = 'home'
